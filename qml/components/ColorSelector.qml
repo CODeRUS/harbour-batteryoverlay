@@ -1,15 +1,26 @@
-import QtQuick 2.0
+import QtQuick 2.1
 import Sailfish.Silica 1.0
 
-Rectangle
+Column
 {
+    id: root
+
     width: parent.width
-    height: editColorRow.height + width*(3/4)
-    color: "transparent"
 
     property bool isColorWheel: false
     property string previewColor: "#000000"
+    property string selectedColor: colorHelper.colorString(Theme.rgba(previewColor, colorOpacity.value / 100.0))
     property int currentColor: 0
+
+    function getColorAlpha(color) {
+        if (color.length == 9 && color.charAt(0) == "#") {
+            var alphaStr = color.substr(1, 2)
+            return parseInt(alphaStr, 16) / 255
+        }
+        else {
+            return 1.0
+        }
+    }
 
     Row
     {
@@ -33,7 +44,6 @@ Rectangle
                 if (isColorWheel)
                 {
                     previewColor = colors[currentColor]
-                    colorWheelRect.color = colors[currentColor]
                 }
                 else
                 {
@@ -46,16 +56,16 @@ Rectangle
         {
             id: colorWheelRect
             anchors.verticalCenter: parent.verticalCenter
-            visible: isColorWheel
             width: parent.width*(1/4)
             height: parent.height - Theme.paddingLarge
             radius: 5
+            color: selectedColor
         }
     }
 
     Grid
     {
-        anchors.top: editColorRow.bottom
+        //anchors.top: editColorRow.bottom
         id: colorSelector
         visible: !isColorWheel
         columns: 4
@@ -91,17 +101,15 @@ Rectangle
         }
     }
 
-    Rectangle
+    Item
     {
         id: colorWheelPlaceHolder
         visible: isColorWheel
 
-        anchors.top: editColorRow.bottom
+        //anchors.top: editColorRow.bottom
 
-        color: "transparent"
         height: parent.width*(3/4)
         width: parent.width
-        radius: 10
 
         anchors.horizontalCenter: parent.horizontalCenter
 
@@ -207,7 +215,6 @@ Rectangle
                     var hex = "#" + ("000000" + rgbToHex(p[0], p[1], p[2])).slice(-6)
 
                     /* Just set them all ... */
-                    colorWheelRect.color = hex
                     colors[currentColor] = hex
                     previewColor = hex
 
@@ -218,5 +225,18 @@ Rectangle
             }
 
         }
+    }
+
+    Slider {
+        id: colorOpacity
+
+        minimumValue: 0
+        maximumValue: 100
+
+        value: getColorAlpha(previewColor) * 100
+        valueText: parseInt(value) + "%"
+
+        label: "Color opacity"
+        width: parent.width
     }
 }

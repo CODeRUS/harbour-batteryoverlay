@@ -7,6 +7,7 @@ Dialog
     id: dialog
     canAccept: true
 
+    property string color
     property string selectedColor
 
     SilicaFlickable
@@ -40,8 +41,9 @@ Dialog
 
             ColorSelector
             {
-                previewColor: selectedColor
-                onPreviewColorChanged: selectedColor = previewColor
+                isColorWheel: true
+                previewColor: dialog.color
+                onSelectedColorChanged: dialog.selectedColor = selectedColor
             }
         }
     }

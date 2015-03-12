@@ -201,7 +201,7 @@ Page {
                 }
 
                 Label {
-                    text: "Simple colored line on top of everything to display bettery charge percentage"
+                    text: "Simple colored line on top of everything to display battery charge percentage"
                     font.pixelSize: Theme.fontSizeMedium
                     width: parent.width
                     horizontalAlignment: Text.AlignHCenter

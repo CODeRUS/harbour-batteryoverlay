@@ -8,10 +8,12 @@ DEFINES += APP_VERSION=\\\"$$VERSION\\\"
 
 SOURCES += \
     src/main.cpp \
-    src/viewhelper.cpp
+    src/viewhelper.cpp \
+    src/colorhelper.cpp
 
 HEADERS += \
-    src/viewhelper.h
+    src/viewhelper.h \
+    src/colorhelper.h
 
 OTHER_FILES += \
     rpm/harbour-batteryoverlay.spec \

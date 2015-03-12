@@ -19,18 +19,24 @@ public:
     explicit ViewHelper(QObject *parent = 0);
 
     Q_INVOKABLE void closeOverlay();
+    Q_INVOKABLE void startOverlay();
 
 public slots:
     void checkActive();
 
-    Q_SCRIPTABLE void show();
-    Q_SCRIPTABLE void exit();
+    Q_SCRIPTABLE Q_NOREPLY void show();
+    Q_SCRIPTABLE Q_NOREPLY void exit();
+    Q_SCRIPTABLE Q_NOREPLY void checkOverlay();
+
+signals:
+    Q_SCRIPTABLE void overlayRunning();
 
 private:
     void showOverlay();
     void showSettings();
 
     QQuickView *view;
+    bool m_isOverlay;
 
 private slots:
     void onPackageStatusChanged(const QString &package, int status);

@@ -6,6 +6,15 @@ Page {
     id: page
     objectName: "mainPage"
 
+    property bool overlayRunning: false
+    Connections {
+        target: helper
+        onOverlayRunning: {
+            console.log("Received overlay pong")
+            overlayRunning = true
+        }
+    }
+
     SilicaFlickable {
         id: flick
         anchors.fill: page
@@ -13,8 +22,16 @@ Page {
 
         PullDownMenu {
             MenuItem {
-                text: "Close overlay"
-                onClicked: helper.closeOverlay()
+                text: overlayRunning ? "Close overlay" : "Start overlay"
+                onClicked: {
+                    if (overlayRunning) {
+                        overlayRunning = false
+                        helper.closeOverlay()
+                    }
+                    else {
+                        helper.startOverlay()
+                    }
+                }
             }
 
             MenuItem {
@@ -37,23 +54,46 @@ Page {
                 onClicked: configuration.followOrientation = checked
             }
 
+            ComboBox {
+                id: fixedOrientationCombo
+                visible: !configuration.followOrientation
+                label: "Fixed orientation:"
+                menu: ContextMenu {
+                    MenuItem { text: "top" }
+                    MenuItem { text: "right" }
+                    MenuItem { text: "bottom" }
+                    MenuItem { text: "left" }
+                }
+                onCurrentIndexChanged: configuration.fixedOrientation = currentIndex
+            }
+
+            Slider {
+                width: parent.width
+                label: "Battery threshold"
+                minimumValue: 1
+                maximumValue: 100
+                value: configuration ? configuration.threshold : 100
+                valueText: parseInt(value) + "%"
+                onReleased: configuration.threshold = parseInt(value)
+            }
+
             Slider {
                 width: parent.width
                 label: "Line height"
                 minimumValue: 1
-                maximumValue: 10
+                maximumValue: 20
                 value: configuration ? configuration.lineHeight : 5
-                valueText: parseInt(value)
+                valueText: parseInt(value) + "px"
                 onReleased: configuration.lineHeight = parseInt(value)
             }
 
             Slider {
                 width: parent.width
-                label: "Opacity percentage"
+                label: "Global opacity"
                 minimumValue: 1
                 maximumValue: 100
                 value: configuration ? configuration.opacityPercentage : 50
-                valueText: parseInt(value)
+                valueText: parseInt(value) + "%"
                 onReleased: configuration.opacityPercentage = parseInt(value)
             }
 
@@ -63,13 +103,19 @@ Page {
                 onClicked: configuration.useSystemColors = checked
             }
 
+            TextSwitch {
+                text: "Apply gradient opacity fade"
+                checked: configuration ? configuration.gradientOpacity : true
+                onClicked: configuration.gradientOpacity = checked
+            }
+
             ColorItem {
                 title: "Charged color"
                 selectedColor: configuration.normalChargedColor
                 visible: !configuration.useSystemColors
 
                 onClicked: {
-                    var dialog = pageStack.push(Qt.resolvedUrl("ColorDialog.qml"), {"selectedColor": configuration.normalChargedColor})
+                    var dialog = pageStack.push(Qt.resolvedUrl("ColorDialog.qml"), {"color": configuration.normalChargedColor})
                     dialog.accepted.connect(function() {
                         configuration.normalChargedColor = dialog.selectedColor
                     })
@@ -82,7 +128,7 @@ Page {
                 visible: !configuration.useSystemColors
 
                 onClicked: {
-                    var dialog = pageStack.push(Qt.resolvedUrl("ColorDialog.qml"), {"selectedColor": configuration.normalUnchangedColor})
+                    var dialog = pageStack.push(Qt.resolvedUrl("ColorDialog.qml"), {"color": configuration.normalUnchangedColor})
                     dialog.accepted.connect(function() {
                         configuration.normalUnchangedColor = dialog.selectedColor
                     })
@@ -101,7 +147,7 @@ Page {
                 visible: !configuration.useSystemColors && configuration.displayChargingStatus
 
                 onClicked: {
-                    var dialog = pageStack.push(Qt.resolvedUrl("ColorDialog.qml"), {"selectedColor": configuration.chargingChargedColor})
+                    var dialog = pageStack.push(Qt.resolvedUrl("ColorDialog.qml"), {"color": configuration.chargingChargedColor})
                     dialog.accepted.connect(function() {
                         configuration.chargingChargedColor = dialog.selectedColor
                     })
@@ -114,7 +160,7 @@ Page {
                 visible: !configuration.useSystemColors && configuration.displayChargingStatus
 
                 onClicked: {
-                    var dialog = pageStack.push(Qt.resolvedUrl("ColorDialog.qml"), {"selectedColor": configuration.chargingUnchargedColor})
+                    var dialog = pageStack.push(Qt.resolvedUrl("ColorDialog.qml"), {"color": configuration.chargingUnchargedColor})
                     dialog.accepted.connect(function() {
                         configuration.chargingUnchargedColor = dialog.selectedColor
                     })
@@ -137,6 +183,14 @@ Page {
             property string chargingUnchargedColor: \"blue\"
             property bool useSystemColors: false
             property bool displayChargingStatus: false
+            property int fixedOrientation: 0
+            property bool gradientOpacity: true
+            property int threshold: 100
         }", page)
+
+        fixedOrientationCombo._updating = false
+        fixedOrientationCombo.currentIndex = configuration.fixedOrientation
+
+        helper.checkOverlay();
     }
 }

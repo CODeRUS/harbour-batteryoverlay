@@ -8,6 +8,7 @@ Item {
 
     width: Screen.width
     height: Screen.height
+    visible: battery.chargePercentage <= configuration.threshold
 
     Item {
         id: rotationItem
@@ -19,26 +20,36 @@ Item {
 
         opacity: configuration.opacityPercentage / 100.0
 
+        property bool inverted: !configuration.followOrientation && (configuration.fixedOrientation == 1
+                                                                     || configuration.fixedOrientation == 2)
+
         Rectangle {
             id: chargedBar
+            x: rotationItem.inverted ? unchargedBar.width : 0
             height: configuration.lineHeight
             width: rotationItem.width * battery.chargePercentage / 100
-            color: configuration.chargedColor
+            gradient: Gradient {
+                GradientStop { position: 0.0; color: configuration.chargedColor }
+                GradientStop { position: 1.0; color: configuration.gradientOpacity ? "transparent" : configuration.chargedColor }
+            }
         }
 
         Rectangle {
             id: unchargedBar
-            x: chargedBar.width
+            x: rotationItem.inverted ? 0 : chargedBar.width
             width: rotationItem.width - chargedBar.width
             height: configuration.lineHeight
-            color: configuration.unchargedColor
+            gradient: Gradient {
+                GradientStop { position: 0.0; color: configuration.unchargedColor }
+                GradientStop { position: 1.0; color: configuration.gradientOpacity ? "transparent" : configuration.unchargedColor }
+            }
         }
     }
 
     OrientationSensor {
         id: orientationSensor
         active: configuration.followOrientation
-        property int angle: active && reading.orientation ? _getOrientation(reading.orientation) : 0
+        property int angle: active && reading.orientation ? _getOrientation(reading.orientation) : configuration.fixedOrientation * 90
         function _getOrientation(value) {
             switch (value) {
             case 2:
@@ -83,6 +94,9 @@ Item {
         property string chargingUnchargedColor: internal ? internal.chargingUnchargedColor : "blue"
         property bool useSystemColors: internal ? internal.useSystemColors : false
         property bool displayChargingStatus: internal ? internal.displayChargingStatus : false
+        property int fixedOrientation: internal ? internal.fixedOrientation : 0
+        property bool gradientOpacity: internal ? internal.gradientOpacity : true
+        property int threshold: internal ? internal.threshold : 100
 
         property string systemChargedColor: displayChargingStatus && battery.isCharging
                                             ? Theme.highlightColor
@@ -113,6 +127,9 @@ Item {
                 property string chargingUnchargedColor: \"blue\"
                 property bool useSystemColors: false
                 property bool displayChargingStatus: false
+                property int fixedOrientation: 0
+                property bool gradientOpacity: true
+                property int threshold: 100
             }", configuration)
         }
     }
