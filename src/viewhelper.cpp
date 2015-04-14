@@ -8,6 +8,7 @@
 
 ViewHelper::ViewHelper(QObject *parent) :
     QObject(parent),
+    dummyView(NULL),
     view(NULL),
     m_isOverlay(false)
 {
@@ -89,16 +90,16 @@ void ViewHelper::showOverlay()
     view->setClearBeforeRendering(true);
 
     view->setSource(SailfishApp::pathTo("qml/overlay.qml"));
-    view->show();
-    view->close();
-
-    view->setSource(SailfishApp::pathTo("qml/overlay.qml"));
     view->create();
     QPlatformNativeInterface *native = QGuiApplication::platformNativeInterface();
     native->setWindowProperty(view->handle(), QLatin1String("CATEGORY"), "notification");
     native->setWindowProperty(view->handle(), QLatin1String("MOUSE_REGION"), QRegion(0, 0, 0, 0));
 
-    view->showFullScreen();
+    dummyView = new QQuickView();
+    dummyView->setSource(SailfishApp::pathTo("qml/empty.qml"));
+    dummyView->showFullScreen();
+
+    QObject::connect(dummyView, SIGNAL(activeChanged()), this, SLOT(onDummyChanged()));
 
     Q_EMIT overlayRunning();
 }
@@ -125,5 +126,13 @@ void ViewHelper::onPackageStatusChanged(const QString &package, int status)
 {
     if (package == "harbour-batteryoverlay" && status != 1) {
         exit();
+    }
+}
+
+void ViewHelper::onDummyChanged()
+{
+    if (dummyView->isActive()) {
+        view->showNormal();
+        dummyView->close();
     }
 }

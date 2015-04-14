@@ -35,11 +35,13 @@ private:
     void showOverlay();
     void showSettings();
 
+    QQuickView *dummyView;
     QQuickView *view;
     bool m_isOverlay;
 
 private slots:
     void onPackageStatusChanged(const QString &package, int status);
+    void onDummyChanged();
 
 };
 

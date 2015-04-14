@@ -26,4 +26,5 @@ OTHER_FILES += \
     qml/pages/ColorDialog.qml \
     qml/components/ColorSelector.qml \
     qml/components/ColorItem.qml \
-    qml/pages/AboutPage.qml
+    qml/pages/AboutPage.qml \
+    qml/empty.qml
