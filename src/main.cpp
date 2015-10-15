@@ -15,7 +15,8 @@ int main(int argc, char *argv[])
     application->setApplicationVersion(QString(APP_VERSION));
     QScopedPointer<ViewHelper> helper(new ViewHelper(application.data()));
 
-    QTimer::singleShot(1, helper.data(), SLOT(checkActive()));
+    QTimer::singleShot(1, helper.data(), SLOT(checkActiveOverlay()));
+    QTimer::singleShot(2, helper.data(), SLOT(checkActiveSettings()));
 
     return application->exec();
 }

@@ -20,28 +20,34 @@ public:
 
     Q_INVOKABLE void closeOverlay();
     Q_INVOKABLE void startOverlay();
+    Q_INVOKABLE void openStore();
+    Q_INVOKABLE void checkOverlay();
 
 public slots:
-    void checkActive();
+    void checkActiveSettings();
+    void checkActiveOverlay();
 
     Q_SCRIPTABLE Q_NOREPLY void show();
     Q_SCRIPTABLE Q_NOREPLY void exit();
-    Q_SCRIPTABLE Q_NOREPLY void checkOverlay();
+    Q_SCRIPTABLE Q_NOREPLY void pingOverlay();
 
 signals:
     Q_SCRIPTABLE void overlayRunning();
+
+    void applicationRemoval();
 
 private:
     void showOverlay();
     void showSettings();
 
-    QQuickView *dummyView;
-    QQuickView *view;
-    bool m_isOverlay;
+    QQuickView *overlayView;
+    QQuickView *settingsView;
 
 private slots:
     void onPackageStatusChanged(const QString &package, int status);
-    void onDummyChanged();
+
+    void onSettingsDestroyed();
+    void onSettingsClosing(QQuickCloseEvent*);
 
 };
 

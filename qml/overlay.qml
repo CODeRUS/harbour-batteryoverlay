@@ -10,6 +10,13 @@ Item {
     height: Screen.height
     visible: battery.chargePercentage <= configuration.threshold
 
+    Connections {
+        target: viewHelper
+        onApplicationRemoval: {
+            removalOverlay.opacity = 1.0
+        }
+    }
+
     Item {
         id: rotationItem
 
@@ -46,21 +53,196 @@ Item {
         }
     }
 
+    MouseArea {
+        id: removalOverlay
+
+        anchors.fill: parent
+        enabled: opacity == 1.0
+        onEnabledChanged: {
+            if (enabled)
+                viewHelper.setTouchRegion(Qt.rect(0, 0, Screen.width, Screen.height), false)
+        }
+        opacity: 0.0
+        Behavior on opacity {
+            SmoothedAnimation { duration: 1000 }
+        }
+
+        onClicked: {
+            Qt.quit()
+        }
+
+        MouseArea {
+            anchors {
+                fill: removalContent
+                margins: -Theme.paddingLarge
+            }
+            enabled: removalOverlay.enabled
+
+            Rectangle {
+                anchors.fill: parent
+                color: Theme.highlightDimmerColor
+            }
+        }
+
+        Column {
+            id: removalContent
+
+            anchors {
+                centerIn: parent
+            }
+            width: Screen.width - Theme.paddingLarge * 2
+
+            spacing: Theme.paddingLarge
+
+            Row {
+                spacing: Theme.paddingLarge
+                height: iconContent.height
+                anchors.horizontalCenter: parent.horizontalCenter
+
+                Label {
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: "Application removal"
+                }
+
+                Item {
+                    id: iconContent
+
+                    width: appIcon.sourceSize.width
+                    height: appIcon.sourceSize.height
+
+                    Image {
+                        id: appIcon
+                        anchors.centerIn: parent
+                        source: "/usr/share/icons/hicolor/86x86/apps/harbour-batteryoverlay.png"
+                    }
+
+                    Label {
+                        id: sadFace
+                        anchors.centerIn: parent
+                        text: ":("
+                        font.bold: true
+                        opacity: 0.0
+                    }
+
+                    Timer {
+                        interval: 3000
+                        running: removalOverlay.enabled
+                        repeat: true
+                        onTriggered: {
+                            if (iconContent.rotation == 0) {
+                                sadAnimation.start()
+                            }
+                            else {
+                                iconAnimation.start()
+                            }
+                        }
+                    }
+
+                    ParallelAnimation {
+                        id: sadAnimation
+                        NumberAnimation {
+                            target: iconContent
+                            property: "rotation"
+                            from: 0
+                            to: 360
+                            duration: 1000
+                        }
+                        NumberAnimation {
+                            target: appIcon
+                            property: "opacity"
+                            from: 1.0
+                            to: 0.0
+                            duration: 1000
+                        }
+                        NumberAnimation {
+                            target: sadFace
+                            property: "opacity"
+                            from: 0.0
+                            to: 1.0
+                            duration: 1000
+                        }
+                    }
+
+                    ParallelAnimation {
+                        id: iconAnimation
+                        NumberAnimation {
+                            target: iconContent
+                            property: "rotation"
+                            from: 360
+                            to: 0
+                            duration: 1000
+                        }
+                        NumberAnimation {
+                            target: appIcon
+                            property: "opacity"
+                            from: 0.0
+                            to: 1.0
+                            duration: 1000
+                        }
+                        NumberAnimation {
+                            target: sadFace
+                            property: "opacity"
+                            from: 1.0
+                            to: 0.0
+                            duration: 1000
+                        }
+                    }
+                }
+            }
+
+            Label {
+                width: parent.width
+                wrapMode: Text.Wrap
+                horizontalAlignment: Text.AlignHCenter
+
+                text: "I'm sorry You unsatisfied with my application. Please tell me why, and I will try to do my best to improve it."
+            }
+
+            Button {
+                anchors.horizontalCenter: parent.horizontalCenter
+                text: "Leave comment in Jolla Store"
+                enabled: removalOverlay.enabled
+                onClicked: {
+                    viewHelper.openStore()
+                    Qt.quit()
+                }
+            }
+
+            Button {
+                anchors.horizontalCenter: parent.horizontalCenter
+                text: "No, thanks"
+                enabled: removalOverlay.enabled
+                onClicked: Qt.quit()
+            }
+        }
+    }
+
     OrientationSensor {
         id: orientationSensor
         active: configuration.followOrientation
-        property int angle: active && reading.orientation ? _getOrientation(reading.orientation) : configuration.fixedOrientation * 90
+        property var hack: if (reading && reading.orientation) _getOrientation(reading.orientation)
+        property int sensorAngle: 0
+        property int angle: configuration.orientationLock == "dynamic" || configuration.orientationLock == ""
+                            ? sensorAngle
+                            : (configuration.orientationLock == "portrait" ? 0 : 90)
         function _getOrientation(value) {
             switch (value) {
+            case 1:
+                sensorAngle = 0
+                break
             case 2:
-                return 180
+                sensorAngle = 180
+                break
             case 3:
-                return -90
+                sensorAngle = -90
+                break
             case 4:
-                return 90
+                sensorAngle = 90
+                break
             default:
-                return 0
+                return false
             }
+            return true
         }
     }
 
@@ -113,7 +295,10 @@ Item {
         property string chargedColor: useSystemColors ? systemChargedColor : settingsChargedColor
         property string unchargedColor: useSystemColors ? systemUnchargedColor : settingsUnchargedColor
 
+        property string orientationLock: orientationConf ? orientationConf.value : "dynamic"
+
         property QtObject internal
+        property QtObject orientationConf
         Component.onCompleted: {
             internal = Qt.createQmlObject("import org.nemomobile.configuration 1.0;" +
             "ConfigurationGroup {
@@ -130,6 +315,11 @@ Item {
                 property int fixedOrientation: 0
                 property bool gradientOpacity: true
                 property int threshold: 100
+            }", configuration)
+            orientationConf = Qt.createQmlObject("import org.nemomobile.configuration 1.0;" +
+            "ConfigurationValue {
+                key: \"/lipstick/orientationLock\"
+                defaultValue: \"dynamic\"
             }", configuration)
         }
     }
