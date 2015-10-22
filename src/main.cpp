@@ -16,7 +16,9 @@ int main(int argc, char *argv[])
     QScopedPointer<ViewHelper> helper(new ViewHelper(application.data()));
 
     QTimer::singleShot(1, helper.data(), SLOT(checkActiveOverlay()));
-    QTimer::singleShot(2, helper.data(), SLOT(checkActiveSettings()));
+    if (argc == 1) {
+        QTimer::singleShot(2, helper.data(), SLOT(checkActiveSettings()));
+    }
 
     return application->exec();
 }

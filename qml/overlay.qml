@@ -60,7 +60,7 @@ Item {
         enabled: opacity == 1.0
         onEnabledChanged: {
             if (enabled)
-                viewHelper.setTouchRegion(Qt.rect(0, 0, Screen.width, Screen.height), false)
+                viewHelper.setMouseRegion(0, 0, Screen.width, Screen.height)
         }
         opacity: 0.0
         Behavior on opacity {
@@ -68,6 +68,7 @@ Item {
         }
 
         onClicked: {
+            viewHelper.removeService()
             Qt.quit()
         }
 
@@ -203,6 +204,7 @@ Item {
                 text: "Leave comment in Jolla Store"
                 enabled: removalOverlay.enabled
                 onClicked: {
+                    viewHelper.removeService()
                     viewHelper.openStore()
                     Qt.quit()
                 }
@@ -212,7 +214,10 @@ Item {
                 anchors.horizontalCenter: parent.horizontalCenter
                 text: "No, thanks"
                 enabled: removalOverlay.enabled
-                onClicked: Qt.quit()
+                onClicked: {
+                    viewHelper.removeService()
+                    Qt.quit()
+                }
             }
         }
     }
@@ -222,9 +227,11 @@ Item {
         active: configuration.followOrientation
         property var hack: if (reading && reading.orientation) _getOrientation(reading.orientation)
         property int sensorAngle: 0
-        property int angle: configuration.orientationLock == "dynamic" || configuration.orientationLock == ""
-                            ? sensorAngle
-                            : (configuration.orientationLock == "portrait" ? 0 : 90)
+        property int angle: active
+                              ? (configuration.orientationLock == "dynamic" || configuration.orientationLock == ""
+                                 ? sensorAngle
+                                 : (configuration.orientationLock == "portrait" ? 0 : 90))
+                              : (configuration.fixedOrientation * 90)
         function _getOrientation(value) {
             switch (value) {
             case 1:
