@@ -200,7 +200,7 @@ Requires=dbus.socket\n\
 \n\
 [Service]\n\
 ExecStart=/usr/bin/harbour-batteryoverlay daemon\n\
-Restart=always\n\
+Restart=on-failure\n\
 RestartSec=15\n\
 \n\
 [Install]\n\
