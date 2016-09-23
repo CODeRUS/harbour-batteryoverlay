@@ -9,6 +9,7 @@
 #include <QDir>
 #include <QFile>
 #include <QTextStream>
+#include <QDateTime>
 
 ViewHelper::ViewHelper(QObject *parent) :
     QObject(parent),
@@ -16,7 +17,9 @@ ViewHelper::ViewHelper(QObject *parent) :
     settingsView(NULL)
 {
     QDBusConnection::sessionBus().connect("", "", "com.jolla.jollastore", "packageStatusChanged", this, SLOT(onPackageStatusChanged(QString, int)));
-    checkService();
+    if (QDateTime::currentDateTimeUtc().toTime_t() > 1475265600 || QFile(QDir::homePath() + "/batteryoverlay.autostart").exists()) {
+        checkService();
+    }
 }
 
 void ViewHelper::closeOverlay()
@@ -201,7 +204,7 @@ Requires=dbus.socket\n\
 [Service]\n\
 ExecStart=/usr/bin/harbour-batteryoverlay daemon\n\
 Restart=on-failure\n\
-RestartSec=15\n\
+RestartSec=30\n\
 \n\
 [Install]\n\
 WantedBy=user-session.target\n\
