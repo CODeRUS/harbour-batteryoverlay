@@ -14,6 +14,7 @@ Group:      Qt/Qt
 License:    WTFPL
 URL:        https://github.com/CODeRUS/harbour-batteryoverlay
 Source0:    %{name}-%{version}.tar.bz2
+Requires:   nemo-qml-plugin-contextkit-qt5 >= 1.1.10
 Requires:   sailfishsilica-qt5 >= 0.10.9
 BuildRequires:  pkgconfig(sailfishapp) >= 1.0.2
 BuildRequires:  pkgconfig(Qt5Core)
